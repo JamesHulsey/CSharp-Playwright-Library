@@ -9,6 +9,13 @@ namespace Toolshop.Tests.UiTests;
 /// <c>ProductCatalogPage</c>. The app is an Angular SPA, so assertions are web-first
 /// (auto-retrying) to absorb async rendering.
 /// </summary>
+/// <remarks>
+/// Categorized <c>ExternalUi</c> and excluded from CI: practicesoftwaretesting.com
+/// sits behind Cloudflare bot-protection, which blocks headless browsers from CI
+/// data-center IPs, so the app never renders there. These tests are stable locally;
+/// CI still covers the Toolshop API tests and the TodoApp UI suite.
+/// </remarks>
+[Category("ExternalUi")]
 [TestFixture]
 public class ProductCatalogTests : ToolshopTestBase
 {

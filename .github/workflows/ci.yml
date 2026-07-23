@@ -47,8 +47,9 @@ jobs:
       - name: Run TodoApp UI tests
         run: dotnet test samples/TodoApp.UiTests/TodoApp.UiTests.csproj --no-build --verbosity normal
 
-      - name: Run Toolshop API tests
-        run: dotnet test samples/Toolshop.Tests/Toolshop.Tests.csproj --no-build --verbosity normal --filter "FullyQualifiedName~ApiTests"
-
-      - name: Run Toolshop UI tests
-        run: dotnet test samples/Toolshop.Tests/Toolshop.Tests.csproj --no-build --verbosity normal --filter "FullyQualifiedName~UiTests"
+      # Toolshop's UI is behind Cloudflare bot-protection, which blocks headless
+      # browsers from CI data-center IPs — the app never renders there. So the UI
+      # tests (Category=ExternalUi) are excluded here and run locally instead; CI
+      # covers the Toolshop API tests plus the TodoApp UI suite above.
+      - name: Run Toolshop tests (API; UI excluded)
+        run: dotnet test samples/Toolshop.Tests/Toolshop.Tests.csproj --no-build --verbosity normal --filter "TestCategory!=ExternalUi"

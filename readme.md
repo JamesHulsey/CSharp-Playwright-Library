@@ -95,12 +95,19 @@ step. The download is cached per user, so subsequent runs start immediately.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs both sample suites — `TodoApp.UiTests` and
-`Toolshop.Tests` — on every merge to `main` (a merge lands as a push), on a
-GitHub-hosted Ubuntu runner. It builds the sample projects (which pull in the
-library), installs Chromium with `--with-deps` so it can launch headless, and runs
-the samples. The library smoke tests are excluded; the samples exercise the library
-end to end and are the meaningful gate.
+`.github/workflows/ci.yml` runs the sample suites on every merge to `main` (a merge
+lands as a push), on a GitHub-hosted Ubuntu runner. It builds the sample projects
+(which pull in the library), installs Chromium with `--with-deps`, and runs the
+tests.
+
+One deliberate carve-out: the **Toolshop UI tests** (NUnit category `ExternalUi`)
+are **excluded from CI**. The Toolshop app sits behind Cloudflare bot-protection,
+which blocks headless browsers on CI data-center IPs, so the page never renders
+there — the tests are stable locally and run there instead. CI therefore covers the
+**TodoApp UI suite** and the **Toolshop API tests**. (The library smoke tests are
+also excluded; the samples exercise the library end to end and are the meaningful
+gate.) Keeping a flaky external-site dependency out of the merge gate is a
+deliberate reliability choice — a scoped, trustworthy green beats an intermittent red.
 
 ## Writing a test
 
