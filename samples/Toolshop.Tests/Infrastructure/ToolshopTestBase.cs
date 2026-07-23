@@ -1,5 +1,6 @@
 using PlaywrightLibrary.Testing;
 using Toolshop.Tests.Api;
+using Toolshop.Tests.Pages;
 
 namespace Toolshop.Tests.Infrastructure;
 
@@ -17,4 +18,11 @@ public abstract class ToolshopTestBase() : PlaywrightTestBase(TestConfig.BaseUrl
     /// </summary>
     protected async Task<ToolshopApiClient> CreateApiClientAsync() =>
         new(await CreateApiContextAsync(TestConfig.ApiBaseUrl));
+
+    /// <summary>Opens a UI session on the catalog (home) page and returns its page object.</summary>
+    protected async Task<ProductCatalogPage> OpenCatalogAsync()
+    {
+        var session = await CreateSessionAsync();
+        return ProductCatalogPage.Create(session.Page);
+    }
 }
