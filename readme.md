@@ -12,7 +12,7 @@ src/PlaywrightLibrary/
   Testing/        PlaywrightTestBase, PlaywrightSession, TestOptions,
                   TestVideoOptions, PlaywrightAuthOptions, PlaywrightAuthHelper,
                   TestMediaHelper
-  Components/     IComponent, ButtonComponent, TextInput, CheckboxInput
+  Components/     IComponent, ButtonComponent, TextInput, CheckboxInput, SelectComponent
   Extensions/     LocatorExtensions
 tests/PlaywrightLibrary.SmokeTests/
   GlobalSetup.cs   installs the browser once before any test runs
@@ -179,9 +179,9 @@ shared across tests (see [Design decisions](#design-decisions)). Worker count is
 
 ## Scope
 
-The component model is deliberately small — `ButtonComponent`, `TextInput`, and
-`CheckboxInput` — each a thin wrapper that gives a locator an intent-revealing API
-rather than trying to model every possible widget.
+The component model is deliberately small — `ButtonComponent`, `TextInput`,
+`CheckboxInput`, and `SelectComponent` — each a thin wrapper that gives a locator an
+intent-revealing API rather than trying to model every possible widget.
 Anything more specialized (tables, dropdowns, date pickers, auto-complete) is
 left to the consuming project, which knows its own DOM.
 

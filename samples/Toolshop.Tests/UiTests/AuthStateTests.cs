@@ -22,6 +22,9 @@ public class AuthStateTests : ToolshopTestBase
     private static PlaywrightAuthOptions CustomerAuth => new()
     {
         AuthFilePath = "auth-state.customer.json",
+        // Toolshop's auth tokens are short-lived, so cache the storage state only
+        // briefly and re-mint before it goes stale (the default is 12h).
+        CacheLifetime = TimeSpan.FromMinutes(5),
         LoginAction = async page =>
         {
             // The helper has already navigated to the landing page.

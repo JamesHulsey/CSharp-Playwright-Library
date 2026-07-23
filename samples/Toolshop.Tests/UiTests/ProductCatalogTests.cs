@@ -53,4 +53,18 @@ public class ProductCatalogTests : ToolshopUiTestBase
         Assert.That(filtered, Is.Not.Empty);
         Assert.That(filtered.Count, Is.LessThan(unfilteredCount));
     }
+
+    [Test]
+    public async Task SortByName_OrdersProductsAlphabetically()
+    {
+        await Assertions.Expect(Catalog.ProductNames.First).ToBeVisibleAsync();
+
+        await Catalog.SortByAsync("Name (A - Z)");
+
+        await Catalog.WaitForResultsAsync(
+            names => names.SequenceEqual(names.OrderBy(n => n, StringComparer.Ordinal)));
+
+        var names = await Catalog.GetProductNamesAsync();
+        Assert.That(names, Is.Ordered.Using<string>(StringComparer.Ordinal));
+    }
 }

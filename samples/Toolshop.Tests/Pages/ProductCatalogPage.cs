@@ -19,6 +19,9 @@ public sealed class ProductCatalogPage(IPage page) : IPageLevelComponent<Product
 
     public ButtonComponent SearchButton => new(page.Locator("[data-test='search-submit']"));
 
+    /// <summary>The catalog's sort dropdown (e.g. "Name (A - Z)", "Price (Low - High)").</summary>
+    public SelectComponent SortDropdown => new(page.Locator("[data-test='sort']"));
+
     /// <summary>Every product card (an anchor linking to the product detail page).</summary>
     public ILocator ProductCards => page.Locator("a[data-test^='product-']");
 
@@ -34,6 +37,9 @@ public sealed class ProductCatalogPage(IPage page) : IPageLevelComponent<Product
     /// <summary>Ticks a category filter by its visible name — independent of its id.</summary>
     public Task FilterByCategoryAsync(string categoryName) =>
         new CheckboxInput(page.GetByRole(AriaRole.Checkbox, new() { Name = categoryName })).SetAsync(true);
+
+    /// <summary>Sorts the catalog by a dropdown option label (e.g. "Name (A - Z)").</summary>
+    public Task SortByAsync(string optionLabel) => SortDropdown.SelectByLabelAsync(optionLabel);
 
     /// <summary>
     /// Waits until the product grid has reloaded to a non-empty result set matching a
