@@ -47,5 +47,8 @@ jobs:
       - name: Run TodoApp UI tests
         run: dotnet test samples/TodoApp.UiTests/TodoApp.UiTests.csproj --no-build --verbosity normal
 
-      - name: Run Toolshop tests
-        run: dotnet test samples/Toolshop.Tests/Toolshop.Tests.csproj --no-build --verbosity normal
+      - name: Run Toolshop API tests
+        run: dotnet test samples/Toolshop.Tests/Toolshop.Tests.csproj --no-build --verbosity normal --filter "FullyQualifiedName~ApiTests"
+
+      - name: Run Toolshop UI tests
+        run: dotnet test samples/Toolshop.Tests/Toolshop.Tests.csproj --no-build --verbosity normal --filter "FullyQualifiedName~UiTests"
