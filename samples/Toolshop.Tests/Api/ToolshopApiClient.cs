@@ -26,6 +26,9 @@ public sealed class ToolshopApiClient(IAPIRequestContext api)
     public Task<ProductList> SearchProductsAsync(string query) =>
         GetAsync<ProductList>("/products/search", new() { ["q"] = query });
 
+    public Task<ProductList> GetProductsByCategoryAsync(string categoryId) =>
+        GetAsync<ProductList>("/products", new() { ["by_category"] = categoryId });
+
     public async Task<IReadOnlyList<Category>> GetCategoriesAsync()
     {
         var response = await api.GetAsync("/categories");
