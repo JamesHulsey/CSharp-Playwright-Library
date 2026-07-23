@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/PlaywrightLibrary/PlaywrightLibrary.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/PlaywrightLibrary.SmokeTests/PlaywrightLibrary.SmokeTests.csproj" />
+  </Folder>
+  <Folder Name="/samples/">
+    <Project Path="samples/TodoApp.UiTests/TodoApp.UiTests.csproj" />
+  </Folder>
+</Solution>

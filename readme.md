@@ -7,7 +7,7 @@ Standalone Playwright test framework: NUnit lifecycle base, session management, 
 ## Layout
 
 ```
-CSharp-Playwright-Library.sln
+CSharp-Playwright-Library.slnx
 src/PlaywrightLibrary/
   Testing/        PlaywrightTestBase, PlaywrightSession, TestOptions,
                   TestVideoOptions, PlaywrightAuthOptions, PlaywrightAuthHelper,
