@@ -123,12 +123,32 @@ internal class TestMediaHelper(TestOptions options)
     }
 
     /// <summary>
+    /// Starts tracing on the context when <see cref="TestOptions.Trace"/> is set;
+    /// a no-op otherwise. Pairs with <see cref="StopTraceAsync"/>.
+    /// </summary>
+    internal async Task StartTraceAsync(IBrowserContext context)
+    {
+        if (options.Trace is null)
+            return;
+
+        await context.Tracing.StartAsync(new()
+        {
+            Screenshots = options.Trace.Screenshots,
+            Snapshots = options.Trace.Snapshots,
+            Sources = options.Trace.Sources
+        });
+    }
+
+    /// <summary>
     /// Stops tracing on the context. On failure the trace zip is written alongside
     /// the other media and attached to the test result; on success it is discarded.
-    /// Must be called before the context is closed.
+    /// A no-op if tracing is disabled. Must be called before the context is closed.
     /// </summary>
     internal async Task StopTraceAsync(IBrowserContext context, bool testFailed)
     {
+        if (options.Trace is null)
+            return;
+
         var outputDir = testFailed ? GetOutputMediaDirectory() : null;
         if (outputDir is null)
         {

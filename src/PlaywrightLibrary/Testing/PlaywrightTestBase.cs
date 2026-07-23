@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Microsoft.Playwright;
 using NUnit.Framework;
 using NUnit.Framework.Interfaces;
 
@@ -38,22 +39,8 @@ public abstract class PlaywrightTestBase(string url, TestOptions options)
             ? null
             : await PlaywrightAuthHelper.EnsureAuthStateAsync(url, authOptions);
 
-        var context = await browser.NewContextAsync(new()
-        {
-            StorageStatePath = authFile,
-            RecordVideoDir = media.GetOutputMediaDirectory(),
-            RecordVideoSize = options.Video?.Size,
-        });
-
-        if (options.Trace is not null)
-        {
-            await context.Tracing.StartAsync(new()
-            {
-                Screenshots = options.Trace.Screenshots,
-                Snapshots = options.Trace.Snapshots,
-                Sources = options.Trace.Sources
-            });
-        }
+        var context = await CreateContextAsync(browser, authFile);
+        await media.StartTraceAsync(context);
 
         var page = await context.NewPageAsync();
         await page.GotoAsync(url);
@@ -63,6 +50,14 @@ public abstract class PlaywrightTestBase(string url, TestOptions options)
         return session;
     }
 
+    private Task<IBrowserContext> CreateContextAsync(IBrowser browser, string? authFile) =>
+        browser.NewContextAsync(new()
+        {
+            StorageStatePath = authFile,
+            RecordVideoDir = media.GetOutputMediaDirectory(),
+            RecordVideoSize = options.Video?.Size,
+        });
+
     [TearDown]
     public async Task TearDownAsync()
     {
@@ -70,8 +65,7 @@ public abstract class PlaywrightTestBase(string url, TestOptions options)
 
         foreach (var session in sessions)
         {
-            if (options.Trace is not null)
-                await media.StopTraceAsync(session.Context, isFailed);
+            await media.StopTraceAsync(session.Context, isFailed);
 
             if (isFailed)
                 await media.TakeScreenshotAsync(session.Page);
