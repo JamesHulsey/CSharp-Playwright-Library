@@ -1,28 +1,23 @@
-# GitHub Actions CI for the Playwright library + smoke tests.
+# Runs the TodoApp UI test suite on every merge to main.
 #
-# A "workflow" is one YAML file. It has triggers (`on:`) and one or more `jobs`.
-# Each job runs on a fresh virtual machine ("runner") and is a list of `steps`.
-# Steps are either a prebuilt action (`uses:`) or a shell command (`run:`).
+# A merge into main lands as a push to main, so that is the trigger. The job builds
+# just the UI test project (which pulls in the library via its project reference),
+# installs the one browser those tests need, and runs only the UI tests — not the
+# library smoke tests. The UI suite drives the library end to end, so it is the
+# meaningful gate.
 
-name: CI
+name: UI Tests
 
-# When should this run?
-#   - push to main:        every commit that lands on main
-#   - pull_request → main: every PR, so you get a green/red check before merging
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
 
 jobs:
-  build-and-test:
-    # Ubuntu is the fastest and cheapest GitHub-hosted runner. PowerShell (pwsh)
-    # comes preinstalled on it, which the browser-install step below relies on.
+  ui-tests:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Check out the repository onto the runner.
+      # 1. Check out the repository.
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -32,21 +27,19 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # 3. Restore NuGet packages (separated from build so failures are easy to spot).
+      # 3. Restore + build only the UI test project (this also builds the library
+      #    it references — no need to build the whole solution).
       - name: Restore
-        run: dotnet restore
+        run: dotnet restore samples/TodoApp.UiTests/TodoApp.UiTests.csproj
 
-      # 4. Build without restoring again.
       - name: Build
-        run: dotnet build --no-restore
+        run: dotnet build samples/TodoApp.UiTests/TodoApp.UiTests.csproj --no-restore
 
-      # 5. Download the Chromium binary AND its Linux OS dependencies.
-      #    `--with-deps` installs the system libraries the browser needs to launch
-      #    on a headless Linux runner — the GlobalSetup fixture alone can't do that.
-      #    playwright.ps1 is emitted into the test project's build output.
+      # 4. Install Chromium and its Linux OS dependencies so the browser can launch
+      #    headless on the runner. playwright.ps1 is emitted into the build output.
       - name: Install Playwright browsers
-        run: pwsh tests/PlaywrightLibrary.SmokeTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
+        run: pwsh samples/TodoApp.UiTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
-      # 6. Run the tests against the already-built output (--no-build avoids a rebuild).
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
+      # 5. Run only the UI tests.
+      - name: Run UI tests
+        run: dotnet test samples/TodoApp.UiTests/TodoApp.UiTests.csproj --no-build --verbosity normal

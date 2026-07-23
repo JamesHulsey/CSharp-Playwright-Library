@@ -1,6 +1,6 @@
 # CSharp-Playwright-Library
 
-[![CI](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml)
+[![UI Tests](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml)
 
 Standalone Playwright test framework: NUnit lifecycle base, session management, storage-state auth caching, video/screenshot on failure, and a minimal component model.
 
@@ -82,9 +82,11 @@ step. The download is cached per user, so subsequent runs start immediately.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` builds the solution and runs every test project on
-each push and pull request to `main`, using a GitHub-hosted Ubuntu runner. It
-installs Chromium with `--with-deps` so the browser can launch headless in CI.
+`.github/workflows/ci.yml` runs the `TodoApp.UiTests` suite on every merge to
+`main` (a merge lands as a push), on a GitHub-hosted Ubuntu runner. It builds the
+UI project — which pulls in the library via its project reference — installs
+Chromium with `--with-deps` so it can launch headless, and runs only the UI tests,
+which exercise the library end to end.
 
 ## Writing a test
 
