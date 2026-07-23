@@ -1,0 +1,7 @@
+bin/
+obj/
+.vs/
+*.user
+test-failures/
+auth-state*.json
+TestResults/

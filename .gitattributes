@@ -1,0 +1,12 @@
+# Normalize line endings: store text as LF in the repo, check out native per OS.
+* text=auto
+
+# Force LF for files consumed on Linux CI.
+*.sh   text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Binary artifacts — never normalize.
+*.png  binary
+*.webm binary
+*.zip  binary
