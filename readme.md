@@ -32,10 +32,14 @@ samples/TodoApp.UiTests/
   GlobalSetup.cs             the consumer's own browser-install fixture
   TodoApp.UiTests.runsettings  URL, browser, headless, slowMo, environment
 samples/Toolshop.Tests/
-  Infrastructure/  TestConfig (UI + API URLs), ToolshopTestBase
+  Infrastructure/  TestConfig, ToolshopTestBase (API), ToolshopUiTestBase (opens landing)
   Model/           Product, Category, Brand, ProductList  (typed API models)
   Api/             ToolshopApiClient  (typed REST client — the API's "page object")
+  Pages/           ProductCatalogPage, ProductDetailPage, LoginPage
+  Components/      SiteHeader, ProductCard
   ApiTests/        ProductApiTests    (API-only; launches no browser)
+  UiTests/         catalog, product detail, login flow, auth-state caching
+  Hybrid/          CategoryFilterHybridTests  (API source of truth vs the UI)
   GlobalSetup.cs, Toolshop.Tests.runsettings
 ```
 
@@ -73,11 +77,23 @@ automation suite:
 > here to avoid the packaging/feed setup a single example doesn't need.
 
 `samples/Toolshop.Tests` is a **second** consumer, targeting the Toolshop demo app
-(`practicesoftwaretesting.com`) — which both proves the library is reusable across
-apps and showcases **API and hybrid testing**. Its `ToolshopApiClient` is the API
-counterpart to a page object: it wraps the library's API request context and returns
-typed models (`Product`, `Category`) instead of raw JSON. API-only tests launch no
-browser (they use `SharedPlaywright`'s API factory, independent of the browser).
+(`practicesoftwaretesting.com`) — proving the library is reusable across apps and
+showcasing **API, UI, and hybrid** testing:
+
+- **API-only** tests through `ToolshopApiClient`, the API counterpart to a page
+  object: it wraps the library's API request context and returns typed models
+  (`Product`, `Category`) instead of raw JSON, and launches no browser.
+- **UI** tests via page objects (`ProductCatalogPage`, `ProductDetailPage`,
+  `LoginPage`) and component objects (`SiteHeader`, `ProductCard`), with
+  `ToolshopUiTestBase` opening the landing page before each test.
+- A **login flow** plus **storage-state auth caching** (the library's
+  `PlaywrightAuthHelper`) — log in once, cache, and start later sessions signed in.
+- A **hybrid** test that reads the source of truth from the API and asserts the UI
+  matches it.
+
+> The Toolshop UI tests are `[Category("ExternalUi")]` and run locally only — the app
+> is behind Cloudflare bot-protection that blocks CI data-center IPs. CI runs the
+> Toolshop API tests and the TodoApp UI suite.
 
 ## Getting started
 

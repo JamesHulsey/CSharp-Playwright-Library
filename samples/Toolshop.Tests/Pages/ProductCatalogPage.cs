@@ -1,6 +1,7 @@
 using Microsoft.Playwright;
 using PlaywrightLibrary.Components;
 using PlaywrightLibrary.Extensions;
+using Toolshop.Tests.Components;
 
 namespace Toolshop.Tests.Pages;
 
@@ -53,6 +54,14 @@ public sealed class ProductCatalogPage(IPage page) : IPageLevelComponent<Product
                 return false;
             return predicate(await names.AllInnerTextsAsync());
         });
+
+    /// <summary>The card for a given product, matched by name within the grid.</summary>
+    public ProductCard Card(string productName) =>
+        new(ProductCards.Filter(new() { HasTextString = productName }));
+
+    /// <summary>Every product card, fanned out from the grid via <c>EnumerateAsync</c>.</summary>
+    public async Task<IReadOnlyList<ProductCard>> GetCardsAsync() =>
+        (await ProductCards.EnumerateAsync()).Select(locator => new ProductCard(locator)).ToList();
 
     /// <summary>The visible product names, in order (via the library's EnumerateAsync).</summary>
     public async Task<IReadOnlyList<string>> GetProductNamesAsync()
