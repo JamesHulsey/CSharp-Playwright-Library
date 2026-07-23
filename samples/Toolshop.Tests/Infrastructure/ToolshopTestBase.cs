@@ -1,14 +1,13 @@
 using PlaywrightLibrary.Testing;
 using Toolshop.Tests.Api;
-using Toolshop.Tests.Pages;
 
 namespace Toolshop.Tests.Infrastructure;
 
 /// <summary>
-/// Base class for every Toolshop test. Wires the library's
-/// <see cref="PlaywrightTestBase"/> to this project's <see cref="TestConfig"/> and
-/// exposes convenient entry points. API-only tests use <see cref="CreateApiClientAsync"/>
-/// and never launch a browser; UI/hybrid tests additionally open pages.
+/// Base class for Toolshop tests. Wires the library's <see cref="PlaywrightTestBase"/>
+/// to this project's <see cref="TestConfig"/>. API-only tests extend this directly and
+/// use <see cref="CreateApiClientAsync"/> — no browser is launched. UI tests extend
+/// <see cref="ToolshopUiTestBase"/>, which opens a page before each test.
 /// </summary>
 public abstract class ToolshopTestBase() : PlaywrightTestBase(TestConfig.BaseUrl, TestConfig.Options)
 {
@@ -18,11 +17,4 @@ public abstract class ToolshopTestBase() : PlaywrightTestBase(TestConfig.BaseUrl
     /// </summary>
     protected async Task<ToolshopApiClient> CreateApiClientAsync() =>
         new(await CreateApiContextAsync(TestConfig.ApiBaseUrl));
-
-    /// <summary>Opens a UI session on the catalog (home) page and returns its page object.</summary>
-    protected async Task<ProductCatalogPage> OpenCatalogAsync()
-    {
-        var session = await CreateSessionAsync();
-        return ProductCatalogPage.Create(session.Page);
-    }
 }

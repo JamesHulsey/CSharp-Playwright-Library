@@ -5,42 +5,35 @@ using Toolshop.Tests.Infrastructure;
 namespace Toolshop.Tests.UiTests;
 
 /// <summary>
-/// UI tests for the Toolshop product catalog, driven through the
-/// <c>ProductCatalogPage</c>. The app is an Angular SPA, so assertions are web-first
-/// (auto-retrying) to absorb async rendering.
+/// UI tests for the Toolshop product catalog, driven through the <c>Catalog</c> page
+/// object. The landing page is opened by <see cref="ToolshopUiTestBase"/> before each
+/// test. The app is an Angular SPA, so results are awaited with condition-based polls.
 /// </summary>
 /// <remarks>
 /// Categorized <c>ExternalUi</c> and excluded from CI: practicesoftwaretesting.com
 /// sits behind Cloudflare bot-protection, which blocks headless browsers from CI
-/// data-center IPs, so the app never renders there. These tests are stable locally;
-/// CI still covers the Toolshop API tests and the TodoApp UI suite.
+/// data-center IPs, so the app never renders there. These tests are stable locally.
 /// </remarks>
 [Category("ExternalUi")]
 [TestFixture]
-public class ProductCatalogTests : ToolshopTestBase
+public class ProductCatalogTests : ToolshopUiTestBase
 {
     [Test]
     public async Task Catalog_LoadsProducts()
     {
-        var catalog = await OpenCatalogAsync();
-
-        await Assertions.Expect(catalog.ProductNames.First).ToBeVisibleAsync();
-        Assert.That((await catalog.GetProductNamesAsync()).Count, Is.GreaterThan(1));
+        await Assertions.Expect(Catalog.ProductNames.First).ToBeVisibleAsync();
+        Assert.That((await Catalog.GetProductNamesAsync()).Count, Is.GreaterThan(1));
     }
 
     [Test]
     public async Task Search_ShowsOnlyMatchingProducts()
     {
-        var catalog = await OpenCatalogAsync();
-        await Assertions.Expect(catalog.ProductNames.First).ToBeVisibleAsync();
+        await Catalog.SearchAsync("pliers");
 
-        await catalog.SearchAsync("pliers");
-
-        // Poll until the reloaded grid holds only matching products.
-        await catalog.WaitForResultsAsync(
+        await Catalog.WaitForResultsAsync(
             names => names.All(n => n.Contains("pliers", StringComparison.OrdinalIgnoreCase)));
 
-        var results = await catalog.GetProductNamesAsync();
+        var results = await Catalog.GetProductNamesAsync();
         Assert.That(results, Is.Not.Empty);
         Assert.That(results, Has.All.Matches<string>(
             n => n.Contains("pliers", StringComparison.OrdinalIgnoreCase)));
@@ -49,16 +42,14 @@ public class ProductCatalogTests : ToolshopTestBase
     [Test]
     public async Task FilterByCategory_NarrowsTheCatalog()
     {
-        var catalog = await OpenCatalogAsync();
-        await Assertions.Expect(catalog.ProductNames.First).ToBeVisibleAsync();
-        var unfilteredCount = await catalog.ProductNames.CountAsync();
+        await Assertions.Expect(Catalog.ProductNames.First).ToBeVisibleAsync();
+        var unfilteredCount = await Catalog.ProductNames.CountAsync();
 
-        await catalog.FilterByCategoryAsync("Pliers");
+        await Catalog.FilterByCategoryAsync("Pliers");
 
-        // Poll until the grid reloads to a smaller (non-empty) result set.
-        await catalog.WaitForResultsAsync(names => names.Count < unfilteredCount);
+        await Catalog.WaitForResultsAsync(names => names.Count < unfilteredCount);
 
-        var filtered = await catalog.GetProductNamesAsync();
+        var filtered = await Catalog.GetProductNamesAsync();
         Assert.That(filtered, Is.Not.Empty);
         Assert.That(filtered.Count, Is.LessThan(unfilteredCount));
     }
