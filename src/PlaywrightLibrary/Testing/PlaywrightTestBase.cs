@@ -9,8 +9,9 @@ namespace PlaywrightLibrary.Testing;
 /// Base class for Playwright tests. Tests run in parallel with a fresh fixture
 /// instance per case; each mints its own browser context + page via
 /// <see cref="CreateSessionAsync"/>, torn down automatically. The browser itself is
-/// shared across tests (see <see cref="SharedBrowser"/>) — launched once, reused —
-/// while every session gets an isolated context.
+/// shared across tests (see <see cref="SharedPlaywright"/>) — launched once, reused —
+/// while every session gets an isolated context. API request contexts
+/// (<see cref="CreateApiContextAsync"/>) are created independently — no browser.
 /// </summary>
 [FixtureLifeCycle(LifeCycle.InstancePerTestCase)]
 [Parallelizable(ParallelScope.All)]
@@ -18,6 +19,7 @@ public abstract class PlaywrightTestBase(string url, TestOptions options)
 {
     private readonly TestMediaHelper media = new(options);
     private readonly ConcurrentBag<PlaywrightSession> sessions = [];
+    private readonly ConcurrentBag<IAPIRequestContext> apiContexts = [];
 
     [SetUp]
     public void SetUp()
@@ -33,7 +35,7 @@ public abstract class PlaywrightTestBase(string url, TestOptions options)
     /// </summary>
     protected async Task<PlaywrightSession> CreateSessionAsync(PlaywrightAuthOptions? authOptions = null)
     {
-        var browser = await SharedBrowser.GetAsync(options);
+        var browser = await SharedPlaywright.GetBrowserAsync(options);
 
         var authFile = authOptions is null
             ? null
@@ -48,6 +50,18 @@ public abstract class PlaywrightTestBase(string url, TestOptions options)
         var session = new PlaywrightSession(context, page);
         sessions.Add(session);
         return session;
+    }
+
+    /// <summary>
+    /// Creates a standalone API request context for API-only tests or for seeding
+    /// and reading data alongside a UI test. Pass the API base URL (which may differ
+    /// from the app URL). Disposed automatically in teardown.
+    /// </summary>
+    protected async Task<IAPIRequestContext> CreateApiContextAsync(string? baseUrl = null)
+    {
+        var apiContext = await SharedPlaywright.CreateApiContextAsync(baseUrl);
+        apiContexts.Add(apiContext);
+        return apiContext;
     }
 
     private Task<IBrowserContext> CreateContextAsync(IBrowser browser, string? authFile) =>
@@ -75,6 +89,9 @@ public abstract class PlaywrightTestBase(string url, TestOptions options)
             if (!isFailed)
                 await media.DeleteVideoRecordingsAsync(session.Page);
         }
+
+        foreach (var apiContext in apiContexts)
+            await apiContext.DisposeAsync();
 
         // The browser is shared across tests and disposed at process exit — only the
         // per-test contexts are torn down here.

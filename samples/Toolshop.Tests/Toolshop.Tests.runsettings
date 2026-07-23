@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Run configuration for Toolshop.Tests. Edit these values to change how the suite
+  runs; TestConfig reads them via TestContext.Parameters. Wired in through
+  <RunSettingsFilePath> in the csproj, so `dotnet test` applies it automatically.
+-->
+<RunSettings>
+
+  <TestRunParameters>
+    <!-- Base URL of the app UI under test. -->
+    <Parameter name="BaseUrl" value="https://practicesoftwaretesting.com" />
+
+    <!-- Base URL of the REST API. -->
+    <Parameter name="ApiBaseUrl" value="https://api.practicesoftwaretesting.com" />
+
+    <!-- Browser to launch: chromium | firefox | webkit -->
+    <Parameter name="Browser" value="chromium" />
+
+    <!-- true = headless (default), false = headed for local debugging. -->
+    <Parameter name="Headless" value="true" />
+
+    <!-- Slow every action by this many milliseconds (0 = full speed). -->
+    <Parameter name="SlowMo" value="0" />
+
+    <!-- Capture a Playwright trace, retained only on failure (true/false). -->
+    <Parameter name="Trace" value="true" />
+  </TestRunParameters>
+
+  <NUnit>
+    <NumberOfTestWorkers>4</NumberOfTestWorkers>
+  </NUnit>
+
+</RunSettings>

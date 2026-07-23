@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<!--
+		A second standalone consumer of PlaywrightLibrary, targeting the Toolshop demo
+		app (practicesoftwaretesting.com). It exercises the library across API-only,
+		UI, and hybrid tests — and doubles as proof the library is reusable across more
+		than one application. Depends on the library through its public API only.
+	-->
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<IsPackable>false</IsPackable>
+		<RunSettingsFilePath>$(MSBuildProjectDirectory)\Toolshop.Tests.runsettings</RunSettingsFilePath>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+		<PackageReference Include="NUnit" Version="4.2.2" />
+		<PackageReference Include="NUnit3TestAdapter" Version="4.6.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\PlaywrightLibrary\PlaywrightLibrary.csproj" />
+	</ItemGroup>
+
+</Project>

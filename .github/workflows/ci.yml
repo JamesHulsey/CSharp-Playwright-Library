@@ -1,19 +1,19 @@
-# Runs the TodoApp UI test suite on every merge to main.
+# Runs the sample test suites on every merge to main.
 #
 # A merge into main lands as a push to main, so that is the trigger. The job builds
-# just the UI test project (which pulls in the library via its project reference),
-# installs the one browser those tests need, and runs only the UI tests — not the
-# library smoke tests. The UI suite drives the library end to end, so it is the
-# meaningful gate.
+# the two sample projects (each pulls in the library via its project reference),
+# installs the one browser the UI tests need, and runs both suites — the TodoApp UI
+# tests and the Toolshop API tests. It does not run the library smoke tests; the
+# samples drive the library end to end and are the meaningful gate.
 
-name: UI Tests
+name: Tests
 
 on:
   push:
     branches: [ main ]
 
 jobs:
-  ui-tests:
+  tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -27,19 +27,25 @@ jobs:
         with:
           dotnet-version: 10.0.x
 
-      # 3. Restore + build only the UI test project (this also builds the library
-      #    it references — no need to build the whole solution).
+      # 3. Restore + build the two sample projects (which build the library too).
       - name: Restore
-        run: dotnet restore samples/TodoApp.UiTests/TodoApp.UiTests.csproj
+        run: |
+          dotnet restore samples/TodoApp.UiTests/TodoApp.UiTests.csproj
+          dotnet restore samples/Toolshop.Tests/Toolshop.Tests.csproj
 
       - name: Build
-        run: dotnet build samples/TodoApp.UiTests/TodoApp.UiTests.csproj --no-restore
+        run: |
+          dotnet build samples/TodoApp.UiTests/TodoApp.UiTests.csproj --no-restore
+          dotnet build samples/Toolshop.Tests/Toolshop.Tests.csproj --no-restore
 
-      # 4. Install Chromium and its Linux OS dependencies so the browser can launch
-      #    headless on the runner. playwright.ps1 is emitted into the build output.
+      # 4. Install Chromium and its Linux OS dependencies (needed by the UI tests).
+      #    Installing once covers both projects — the browser cache is machine-wide.
       - name: Install Playwright browsers
         run: pwsh samples/TodoApp.UiTests/bin/Debug/net10.0/playwright.ps1 install --with-deps chromium
 
-      # 5. Run only the UI tests.
-      - name: Run UI tests
+      # 5. Run both sample suites.
+      - name: Run TodoApp UI tests
         run: dotnet test samples/TodoApp.UiTests/TodoApp.UiTests.csproj --no-build --verbosity normal
+
+      - name: Run Toolshop tests
+        run: dotnet test samples/Toolshop.Tests/Toolshop.Tests.csproj --no-build --verbosity normal

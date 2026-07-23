@@ -7,5 +7,6 @@
   </Folder>
   <Folder Name="/samples/">
     <Project Path="samples/TodoApp.UiTests/TodoApp.UiTests.csproj" />
+    <Project Path="samples/Toolshop.Tests/Toolshop.Tests.csproj" />
   </Folder>
 </Solution>

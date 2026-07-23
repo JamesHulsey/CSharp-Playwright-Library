@@ -1,6 +1,6 @@
 # CSharp-Playwright-Library
 
-[![UI Tests](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml)
+[![Tests](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml)
 
 Standalone Playwright test framework: NUnit lifecycle base, session management, storage-state auth caching, video/screenshot on failure, and a minimal component model.
 
@@ -31,6 +31,12 @@ samples/TodoApp.UiTests/
     SessionIsolationTests.cs multi-user context isolation
   GlobalSetup.cs             the consumer's own browser-install fixture
   TodoApp.UiTests.runsettings  URL, browser, headless, slowMo, environment
+samples/Toolshop.Tests/
+  Infrastructure/  TestConfig (UI + API URLs), ToolshopTestBase
+  Model/           Product, Category, Brand, ProductList  (typed API models)
+  Api/             ToolshopApiClient  (typed REST client — the API's "page object")
+  ApiTests/        ProductApiTests    (API-only; launches no browser)
+  GlobalSetup.cs, Toolshop.Tests.runsettings
 ```
 
 `samples/TodoApp.UiTests` is a standalone project that consumes the library
@@ -66,6 +72,13 @@ automation suite:
 > release cadence and is shared across repositories. It's deliberately left out
 > here to avoid the packaging/feed setup a single example doesn't need.
 
+`samples/Toolshop.Tests` is a **second** consumer, targeting the Toolshop demo app
+(`practicesoftwaretesting.com`) — which both proves the library is reusable across
+apps and showcases **API and hybrid testing**. Its `ToolshopApiClient` is the API
+counterpart to a page object: it wraps the library's API request context and returns
+typed models (`Product`, `Category`) instead of raw JSON. API-only tests launch no
+browser (they use `SharedPlaywright`'s API factory, independent of the browser).
+
 ## Getting started
 
 ```bash
@@ -82,11 +95,12 @@ step. The download is cached per user, so subsequent runs start immediately.
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` runs the `TodoApp.UiTests` suite on every merge to
-`main` (a merge lands as a push), on a GitHub-hosted Ubuntu runner. It builds the
-UI project — which pulls in the library via its project reference — installs
-Chromium with `--with-deps` so it can launch headless, and runs only the UI tests,
-which exercise the library end to end.
+`.github/workflows/ci.yml` runs both sample suites — `TodoApp.UiTests` and
+`Toolshop.Tests` — on every merge to `main` (a merge lands as a push), on a
+GitHub-hosted Ubuntu runner. It builds the sample projects (which pull in the
+library), installs Chromium with `--with-deps` so it can launch headless, and runs
+the samples. The library smoke tests are excluded; the samples exercise the library
+end to end and are the meaningful gate.
 
 ## Writing a test
 
@@ -173,10 +187,14 @@ is a working example of exactly that.
 The trade-offs worth knowing, and why they were made:
 
 - **One shared browser, a context per test.** Launching a browser is expensive;
-  contexts are cheap and fully isolated. `SharedBrowser` launches one browser per
-  launch-config and reuses it, while each test gets its own context. Browsers are
-  disposed on process exit, because a library has no assembly-level teardown hook
-  inside the consumer.
+  contexts are cheap and fully isolated. `SharedPlaywright` owns the single
+  Playwright driver and reuses one browser per launch-config, while each test gets
+  its own context. Browsers are disposed on process exit, because a library has no
+  assembly-level teardown hook inside the consumer.
+- **Browsers and API contexts are independent siblings.** Mirroring Playwright's own
+  shape (`IPlaywright` exposes both browsers and `APIRequest`), `SharedPlaywright`
+  hands out browsers and API request contexts from the same driver but with no
+  dependency between them — an API-only test never launches a browser.
 - **Config is the consumer's job, not the library's.** `PlaywrightTestBase` takes
   `TestOptions` rather than inventing them, and `Browser`/`Environment` are
   `required` to force a conscious choice. The library is the mechanism; the consumer
