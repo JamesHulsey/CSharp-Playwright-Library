@@ -14,6 +14,13 @@ public sealed class SiteHeader(IPage page)
 
     public ButtonComponent SignOutLink => new(page.Locator("[data-test='nav-sign-out']"));
 
+    public ButtonComponent CartLink => new(page.Locator("[data-test='nav-cart']"));
+
+    /// <summary>The cart badge count in the nav.</summary>
+    public ILocator CartQuantity => page.Locator("[data-test='cart-quantity']");
+
+    public Task GoToCartAsync() => CartLink.ClickAsync();
+
     /// <summary>The account menu — shown only when signed in, labelled with the user's name.</summary>
     public ILocator AccountMenu => page.Locator("[data-test='nav-menu']");
 

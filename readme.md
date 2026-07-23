@@ -35,10 +35,10 @@ samples/Toolshop.Tests/
   Infrastructure/  TestConfig, ToolshopTestBase (API), ToolshopUiTestBase (opens landing)
   Model/           Product, Category, Brand, ProductList  (typed API models)
   Api/             ToolshopApiClient  (typed REST client — the API's "page object")
-  Pages/           ProductCatalogPage, ProductDetailPage, LoginPage
+  Pages/           ProductCatalogPage, ProductDetailPage, LoginPage, CartPage
   Components/      SiteHeader, ProductCard
   ApiTests/        ProductApiTests    (API-only; launches no browser)
-  UiTests/         catalog, product detail, login flow, auth-state caching
+  UiTests/         catalog, product detail, login, auth-state caching, cart
   Hybrid/          CategoryFilterHybridTests  (API source of truth vs the UI)
   GlobalSetup.cs, Toolshop.Tests.runsettings
 ```
