@@ -13,6 +13,14 @@ A reusable Playwright + NUnit test framework for C#, with two sample apps that c
 - Retain-on-failure **trace / video / screenshot**, attached to test results
 - GitHub Actions CI with a deliberately scoped, reliable gate
 
+> **About this project.** A portfolio piece — built to demonstrate framework
+> architecture, reusable design, and API/UI/hybrid automation techniques end-to-end,
+> with the reasoning made explicit rather than hidden (see [Design decisions](#design-decisions)).
+> It's deliberately scoped to stay clone-and-run in a single repo; a production library
+> would layer on things like NuGet packaging and versioning, a broader component set,
+> and its own unit test suite. The focus here is the *thinking* and the *structure*,
+> shown in runnable form.
+
 ## Why this exists
 
 The goal isn't to wrap Playwright — it's to provide opinionated infrastructure around
