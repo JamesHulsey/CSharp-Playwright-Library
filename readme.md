@@ -2,7 +2,24 @@
 
 [![Tests](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml)
 
-Standalone Playwright test framework: NUnit lifecycle base, session management, storage-state auth caching, video/screenshot/trace on failure, and a minimal component model.
+A reusable Playwright + NUnit test framework for C#, with two sample apps that consume it.
+
+**Highlights**
+
+- Reusable Playwright + NUnit framework on .NET 10
+- One shared browser, an isolated context per test — parallel-safe by design
+- Storage-state authentication with caching
+- **API, UI, and hybrid** (API ↔ UI) testing, shown across **two** sample apps
+- Retain-on-failure **trace / video / screenshot**, attached to test results
+- GitHub Actions CI with a deliberately scoped, reliable gate
+
+## Why this exists
+
+The goal isn't to wrap Playwright — it's to provide opinionated infrastructure around
+the parts every UI-automation suite re-implements: browser and session lifecycle,
+authentication, reusable components, media capture, and parallel execution. Consumers
+stay lightweight and focus on tests, not framework plumbing. The two `samples/`
+projects prove the point by driving the same library against two different apps.
 
 ## Architecture
 
@@ -61,126 +78,18 @@ sequenceDiagram
     B->>C: dispose context (browser stays shared)
 ```
 
-## Layout
-
-```
-CSharp-Playwright-Library.slnx
-src/PlaywrightLibrary/
-  Testing/        PlaywrightTestBase, PlaywrightSession, TestOptions,
-                  TestVideoOptions, PlaywrightAuthOptions, PlaywrightAuthHelper,
-                  TestMediaHelper
-  Components/     IComponent, ButtonComponent, TextInput, CheckboxInput, SelectComponent
-  Extensions/     LocatorExtensions
-tests/PlaywrightLibrary.SmokeTests/
-  GlobalSetup.cs   installs the browser once before any test runs
-  SmokeTest.cs     minimal check against playwright.dev that the harness boots
-samples/TodoApp.UiTests/
-  Infrastructure/
-    TestConfig.cs            reads run config from the .runsettings parameters
-    TodoAppTestBase.cs       project base: wires the library base to TestConfig
-  Model/
-    TodoItem.cs              test-data record passed around instead of raw strings
-  Pages/
-    TodoPage.cs              page object; hands out TodoRow component objects
-    TodoRow.cs               component object for a single todo row
-  Tests/
-    TodoManagementTests.cs   add / complete / clear behaviors
-    SessionIsolationTests.cs multi-user context isolation
-  GlobalSetup.cs             the consumer's own browser-install fixture
-  TodoApp.UiTests.runsettings  URL, browser, headless, slowMo, environment
-samples/Toolshop.Tests/
-  Infrastructure/  TestConfig, ToolshopTestBase (API), ToolshopUiTestBase (opens landing)
-  Model/           Product, Category, Brand, ProductList  (typed API models)
-  Api/             ToolshopApiClient  (typed REST client — the API's "page object")
-  Pages/           ProductCatalogPage, ProductDetailPage, LoginPage, CartPage
-  Components/      SiteHeader, ProductCard
-  ApiTests/        ProductApiTests    (API-only; launches no browser)
-  UiTests/         catalog, product detail, login, auth-state caching, cart
-  Hybrid/          CategoryFilterHybridTests  (API source of truth vs the UI)
-  GlobalSetup.cs, Toolshop.Tests.runsettings
-```
-
-`samples/TodoApp.UiTests` is a standalone project that consumes the library
-exactly as a downstream team would — through a project reference to its public
-API, with no direct dependency on Playwright itself. It's laid out like a real
-automation suite:
-
-- **`TestConfig`** reads the run settings (target URL, browser, headless, slowMo,
-  environment) from the `<TestRunParameters>` in `TodoApp.UiTests.runsettings`,
-  each with a code-level default fallback. Edit that file to run headed, switch
-  browser, or point at another environment — no code change, no machine
-  environment variables. The csproj wires the file in via `RunSettingsFilePath`,
-  so `dotnet test` applies it automatically.
-- **`TodoAppTestBase`** extends the library's `PlaywrightTestBase`, binds it to
-  `TestConfig`, and exposes `OpenTodoAppAsync()` — one place for tests to get a
-  ready page object.
-- **`TodoPage`** is a page object: it owns the page-level locators and actions
-  (`AddTodoAsync`, `ClearCompletedAsync`) and hands out **`TodoRow`** component
-  objects via `Row(todo)` / `GetRowsAsync()`.
-- **`TodoRow`** models a single row (like a table row): it wraps one row's locator
-  and resolves its title and checkbox relative to that root, exposing
-  `CompleteAsync`, `IsCompletedAsync`, `IsStruckThroughAsync`. It composes the
-  library's `CheckboxInput` and locator extensions.
-- **`TodoItem`** is a small record used as test data — tests pass todos around as
-  typed objects instead of bare strings.
-- **Tests** stay thin and readable, talking only to the page and row objects, and
-  use web-first assertions.
-
-> **On the dependency style:** this sample uses a **project reference** to keep the
-> repo clone-and-run simple. In a production setting the preferred approach is to
-> publish the library as a versioned **NuGet package** and consume it with
-> `dotnet add package` — that's what you'd reach for once the library has its own
-> release cadence and is shared across repositories. It's deliberately left out
-> here to avoid the packaging/feed setup a single example doesn't need.
-
-`samples/Toolshop.Tests` is a **second** consumer, targeting the Toolshop demo app
-(`practicesoftwaretesting.com`) — proving the library is reusable across apps and
-showcasing **API, UI, and hybrid** testing:
-
-- **API-only** tests through `ToolshopApiClient`, the API counterpart to a page
-  object: it wraps the library's API request context and returns typed models
-  (`Product`, `Category`) instead of raw JSON, and launches no browser.
-- **UI** tests via page objects (`ProductCatalogPage`, `ProductDetailPage`,
-  `LoginPage`) and component objects (`SiteHeader`, `ProductCard`), with
-  `ToolshopUiTestBase` opening the landing page before each test.
-- A **login flow** plus **storage-state auth caching** (the library's
-  `PlaywrightAuthHelper`) — log in once, cache, and start later sessions signed in.
-- A **hybrid** test that reads the source of truth from the API and asserts the UI
-  matches it.
-
-> The Toolshop UI tests are `[Category("ExternalUi")]` and run locally only — the app
-> is behind Cloudflare bot-protection that blocks CI data-center IPs. CI runs the
-> Toolshop API tests and the TodoApp UI suite.
-
-## Getting started
+## Quick start
 
 ```bash
 dotnet test
 ```
 
-That's it. Each test project's `PlaywrightBrowserSetup` fixture (`GlobalSetup.cs`)
-downloads the Chromium browser on the first run — no manual `playwright install`
-step. The download is cached per user, so subsequent runs start immediately.
+That's it. Each test project's `PlaywrightBrowserSetup` fixture downloads Chromium on
+the first run — no manual `playwright install` step — and the download is cached per user.
 
-> On Linux, the browser binary also needs OS-level libraries to launch. CI
-> installs those with `playwright.ps1 install --with-deps` (see below); locally,
-> run the same command once if a browser fails to start.
-
-## Continuous integration
-
-`.github/workflows/ci.yml` runs the sample suites on every merge to `main` (a merge
-lands as a push), on a GitHub-hosted Ubuntu runner. It builds the sample projects
-(which pull in the library), installs Chromium with `--with-deps`, and runs the
-tests.
-
-One deliberate carve-out: the **Toolshop UI tests** (NUnit category `ExternalUi`)
-are **excluded from CI**. The Toolshop app sits behind Cloudflare bot-protection,
-which blocks headless browsers on CI data-center IPs, so the page never renders
-there — the tests are stable locally and run there instead. CI therefore covers the
-**TodoApp UI suite** and the **Toolshop API tests**. (The library smoke tests are
-also excluded; the samples exercise the library end to end and are the meaningful
-gate.) Keeping a flaky external-site dependency out of the merge gate is a
-deliberate reliability choice — a scoped, trustworthy green beats an intermittent red.
+> On Linux the browser also needs OS-level libraries; CI installs them with
+> `playwright.ps1 install --with-deps`, and you can run the same once locally if a
+> browser fails to start.
 
 ## Writing a test
 
@@ -239,28 +148,15 @@ path, so multiple roles can be minted concurrently.
   together and attached to the NUnit test result, so they surface in test reports
   and CI. Open a trace with `playwright show-trace trace.zip`.
 - Output path: `{Directory}/{yyyy-MM-dd}/{Environment}/{TestName}/{HH.mm.ss}/`
-- Directories older than one day are cleaned once per run.
 
 Set `Video`/`Trace` to `null` to disable either.
 
 ## Parallelism
 
-`PlaywrightTestBase` is marked `[Parallelizable(ParallelScope.All)]` with
+`PlaywrightTestBase` is `[Parallelizable(ParallelScope.All)]` with
 `[FixtureLifeCycle(LifeCycle.InstancePerTestCase)]` — a fresh fixture instance per test, each with
-its own browser context, so instance fields are safe without any locking. The browser itself is
-shared across tests (see [Design decisions](#design-decisions)). Worker count is set in `.runsettings`.
-
-## Scope
-
-The component model is deliberately small — `ButtonComponent`, `TextInput`,
-`CheckboxInput`, and `SelectComponent` — each a thin wrapper that gives a locator an
-intent-revealing API rather than trying to model every possible widget.
-Anything more specialized (tables, dropdowns, date pickers, auto-complete) is
-left to the consuming project, which knows its own DOM.
-
-The library stays application-agnostic: it assumes only standard ARIA roles and
-test IDs, so it drops into any Playwright + NUnit project. `samples/TodoApp.UiTests`
-is a working example of exactly that.
+its own browser context, so instance fields are safe without locking. The browser itself is shared
+across tests (see [Design decisions](#design-decisions)). Worker count is set in `.runsettings`.
 
 ## Design decisions
 
@@ -278,12 +174,12 @@ The trade-offs worth knowing, and why they were made:
 - **Config is the consumer's job, not the library's.** `PlaywrightTestBase` takes
   `TestOptions` rather than inventing them, and `Browser`/`Environment` are
   `required` to force a conscious choice. The library is the mechanism; the consumer
-  owns policy — `TodoApp.UiTests` sources that policy from `.runsettings`.
-- **Run settings over environment variables.** The sample reads config from
-  `<TestRunParameters>` — a file people edit — rather than machine environment
-  variables. Cleaner precedence, and `.runsettings` stays reserved for runner
-  concerns while app config rides in one committed file.
-- **Project reference over a NuGet package.** The sample consumes the library by
+  owns policy — the samples source theirs from `.runsettings`.
+- **Run settings over environment variables.** Config comes from `<TestRunParameters>`
+  — a file people edit — rather than machine environment variables. Cleaner precedence,
+  and `.runsettings` stays reserved for runner concerns while app config rides in one
+  committed file.
+- **Project reference over a NuGet package.** The samples consume the library by
   project reference to keep the repo clone-and-run simple; production would publish
   a versioned package. Left deliberate rather than hidden.
 - **No `networkidle` wait.** Playwright discourages it; readiness is asserted with
@@ -291,3 +187,72 @@ The trade-offs worth knowing, and why they were made:
 - **Retain-on-failure artifacts.** Video, trace, and screenshot are captured but
   only kept — and attached to the test result — when a test fails, so green runs
   stay clean.
+
+## Scope
+
+The component model is deliberately small — `ButtonComponent`, `TextInput`,
+`CheckboxInput`, `SelectComponent` — thin wrappers that give a locator an
+intent-revealing API. Anything more specialized (tables, date pickers, auto-complete)
+belongs to the consuming project, which knows its own DOM. The library assumes only
+standard ARIA roles and test IDs, so it drops into any Playwright + NUnit project.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs the sample suites on every merge to `main`, on a
+GitHub-hosted Ubuntu runner: it builds the sample projects (which pull in the library),
+installs Chromium with `--with-deps`, and runs the tests.
+
+One deliberate carve-out: the **Toolshop UI tests** (NUnit category `ExternalUi`) are
+**excluded from CI**. The Toolshop app sits behind Cloudflare bot-protection, which
+blocks headless browsers on CI data-center IPs, so the page never renders there — those
+tests are stable locally and run there instead. CI covers the **TodoApp UI suite** and
+the **Toolshop API tests**. Keeping a flaky external-site dependency out of the merge
+gate is deliberate: a scoped, trustworthy green beats an intermittent red.
+
+## Project layout
+
+```
+CSharp-Playwright-Library.slnx
+src/PlaywrightLibrary/
+  Testing/     PlaywrightTestBase, PlaywrightSession, SharedPlaywright, TestOptions,
+               TestVideoOptions, TestTraceOptions, PlaywrightAuthOptions/Helper, TestMediaHelper
+  Components/  IComponent, ButtonComponent, TextInput, CheckboxInput, SelectComponent
+  Extensions/  LocatorExtensions
+tests/PlaywrightLibrary.SmokeTests/   minimal "harness boots" check
+samples/TodoApp.UiTests/              UI sample (page objects, row components)
+samples/Toolshop.Tests/               API + UI + hybrid sample
+```
+
+## The samples
+
+### `samples/TodoApp.UiTests`
+
+A standalone consumer via project reference, laid out like a real UI suite:
+
+- **`TestConfig`** reads run settings (URL, browser, headless, slowMo, environment)
+  from the `.runsettings` `<TestRunParameters>`, each with a code default — edit the
+  file to change how the suite runs, no code change or machine env vars.
+- **`TodoAppTestBase`** binds the library base to `TestConfig` and exposes `OpenTodoAppAsync()`.
+- **`TodoPage`** owns page-level actions and hands out **`TodoRow`** component objects
+  (`Row(todo)` / `GetRowsAsync()`).
+- **`TodoRow`** wraps one row and resolves its title/checkbox relative to that root
+  (`CompleteAsync`, `IsCompletedAsync`, `IsStruckThroughAsync`), composing `CheckboxInput`.
+- **`TodoItem`** — a record passed around as test data instead of bare strings.
+
+> **Dependency style:** a project reference keeps the repo clone-and-run simple; in
+> production you'd publish a versioned NuGet package and `dotnet add package`. Left
+> deliberate rather than hidden.
+
+### `samples/Toolshop.Tests`
+
+A **second** consumer (targeting `practicesoftwaretesting.com`), proving reusability
+across apps and showcasing **API, UI, and hybrid** testing:
+
+- **API-only** tests via `ToolshopApiClient` — the API's page-object equivalent: typed
+  models (`Product`, `Category`) over the library's API request context, no browser.
+- **UI** tests via page objects (`ProductCatalogPage`, `ProductDetailPage`, `LoginPage`,
+  `CartPage`) and component objects (`SiteHeader`, `ProductCard`); `ToolshopUiTestBase`
+  opens the landing page before each test.
+- A **login flow** plus **storage-state auth caching** — log in once, cache, and start
+  later sessions signed in.
+- A **hybrid** test that reads the source of truth from the API and asserts the UI matches.
