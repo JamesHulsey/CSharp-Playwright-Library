@@ -20,9 +20,9 @@ public class LoginFlowTests : ToolshopUiTestBase
     [Test]
     public async Task SigningIn_WithValidCredentials_ShowsTheAccountMenu()
     {
-        await Header.GoToSignInAsync();
+        var login = await Header.GoToSignInAsync();
 
-        await LoginPage.LoginAsync(CustomerEmail, CustomerPassword);
+        await login.LoginAsync(CustomerEmail, CustomerPassword);
 
         await Assertions.Expect(Header.AccountMenu).ToContainTextAsync("Jane Doe");
     }
@@ -30,10 +30,10 @@ public class LoginFlowTests : ToolshopUiTestBase
     [Test]
     public async Task SigningIn_WithInvalidCredentials_ShowsAnError()
     {
-        await Header.GoToSignInAsync();
+        var login = await Header.GoToSignInAsync();
 
-        await LoginPage.LoginAsync(CustomerEmail, "definitely-wrong");
+        await login.LoginAsync(CustomerEmail, "definitely-wrong");
 
-        await Assertions.Expect(LoginPage.Error).ToContainTextAsync("Invalid email or password");
+        await Assertions.Expect(login.Error).ToContainTextAsync("Invalid email or password");
     }
 }

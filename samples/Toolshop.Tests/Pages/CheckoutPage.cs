@@ -18,9 +18,6 @@ public sealed class CheckoutPage(IPage page) : IPageLevelComponent<CheckoutPage>
     /// <summary>The banner shown once the order is placed.</summary>
     public ILocator SuccessMessage => page.Locator("[data-test='payment-success-message']");
 
-    public Task ProceedToCheckoutAsync() =>
-        new ButtonComponent(page.Locator("[data-test='proceed-1']")).ClickAsync();
-
     public Task ContinueAsSignedInAsync() =>
         new ButtonComponent(page.Locator("[data-test='proceed-2']")).ClickAsync();
 

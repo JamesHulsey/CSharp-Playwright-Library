@@ -1,5 +1,6 @@
 using Microsoft.Playwright;
 using PlaywrightLibrary.Components;
+using Toolshop.Tests.Pages;
 
 namespace Toolshop.Tests.Components;
 
@@ -19,12 +20,20 @@ public sealed class SiteHeader(IPage page)
     /// <summary>The cart badge count in the nav.</summary>
     public ILocator CartQuantity => page.Locator("[data-test='cart-quantity']");
 
-    public Task GoToCartAsync() => CartLink.ClickAsync();
+    public async Task<CartPage> GoToCartAsync()
+    {
+        await CartLink.ClickAsync();
+        return CartPage.Create(page);
+    }
 
     /// <summary>The account menu — shown only when signed in, labelled with the user's name.</summary>
     public ILocator AccountMenu => page.Locator("[data-test='nav-menu']");
 
-    public Task GoToSignInAsync() => SignInLink.ClickAsync();
+    public async Task<LoginPage> GoToSignInAsync()
+    {
+        await SignInLink.ClickAsync();
+        return LoginPage.Create(page);
+    }
 
     public Task<bool> IsSignedInAsync() => AccountMenu.IsVisibleAsync();
 

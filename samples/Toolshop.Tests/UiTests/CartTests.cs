@@ -1,7 +1,6 @@
 using Microsoft.Playwright;
 using NUnit.Framework;
 using Toolshop.Tests.Infrastructure;
-using Toolshop.Tests.Pages;
 
 namespace Toolshop.Tests.UiTests;
 
@@ -18,16 +17,16 @@ public class CartTests : ToolshopUiTestBase
     public async Task AddingAProductToTheCart_ShowsItInTheCart()
     {
         const string product = "Combination Pliers";
-        await Catalog.Card(product).OpenAsync();
+        var detail = await Catalog.Card(product).OpenAsync();
 
-        await ProductDetailPage.Create(Page).AddToCartAsync();
+        await detail.AddToCartAsync();
 
         // The nav badge reflects the added item...
         await Assertions.Expect(Header.CartQuantity).ToHaveTextAsync("1");
 
         // ...and the cart lists it with a total.
-        await Header.GoToCartAsync();
-        await Assertions.Expect(Cart.ItemTitles).ToContainTextAsync(product);
-        await Assertions.Expect(Cart.Total).ToContainTextAsync("$");
+        var cart = await Header.GoToCartAsync();
+        await Assertions.Expect(cart.ItemTitles).ToContainTextAsync(product);
+        await Assertions.Expect(cart.Total).ToContainTextAsync("$");
     }
 }

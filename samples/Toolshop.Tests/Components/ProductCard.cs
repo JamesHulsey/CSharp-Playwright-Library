@@ -1,5 +1,6 @@
 using Microsoft.Playwright;
 using PlaywrightLibrary.Components;
+using Toolshop.Tests.Pages;
 
 namespace Toolshop.Tests.Components;
 
@@ -20,5 +21,9 @@ public sealed class ProductCard(ILocator root) : IComponent
     public async Task<string> GetPriceAsync() => (await Price.InnerTextAsync()).Trim();
 
     /// <summary>Opens the product's detail page (the card is a link).</summary>
-    public Task OpenAsync() => root.ClickAsync();
+    public async Task<ProductDetailPage> OpenAsync()
+    {
+        await root.ClickAsync();
+        return ProductDetailPage.Create(root.Page);
+    }
 }

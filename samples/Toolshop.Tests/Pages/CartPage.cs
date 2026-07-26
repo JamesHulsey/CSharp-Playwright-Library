@@ -16,4 +16,11 @@ public sealed class CartPage(IPage page) : IPageLevelComponent<CartPage>
 
     /// <summary>The cart total.</summary>
     public ILocator Total => page.Locator("[data-test='cart-total']");
+
+    /// <summary>Advances from the cart to the checkout stepper.</summary>
+    public async Task<CheckoutPage> ProceedToCheckoutAsync()
+    {
+        await new ButtonComponent(page.Locator("[data-test='proceed-1']")).ClickAsync();
+        return CheckoutPage.Create(page);
+    }
 }

@@ -2,7 +2,6 @@ using System.Text.RegularExpressions;
 using Microsoft.Playwright;
 using NUnit.Framework;
 using Toolshop.Tests.Infrastructure;
-using Toolshop.Tests.Pages;
 
 namespace Toolshop.Tests.UiTests;
 
@@ -21,9 +20,8 @@ public class ProductDetailTests : ToolshopUiTestBase
         var card = Catalog.Card(productName);
         await Assertions.Expect(card.Locator).ToBeVisibleAsync();
 
-        await card.OpenAsync();
+        var detail = await card.OpenAsync();
 
-        var detail = ProductDetailPage.Create(Page);
         await Assertions.Expect(detail.Name).ToHaveTextAsync(productName);
         await Assertions.Expect(detail.AddToCartButton.Locator).ToBeVisibleAsync();
     }

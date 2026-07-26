@@ -1,7 +1,6 @@
 using Microsoft.Playwright;
 using NUnit.Framework;
 using Toolshop.Tests.Infrastructure;
-using Toolshop.Tests.Pages;
 
 namespace Toolshop.Tests.UiTests;
 
@@ -23,24 +22,24 @@ public class CheckoutTests : ToolshopUiTestBase
     public async Task CompletingCheckout_AsASignedInCustomer_PlacesTheOrder()
     {
         // Sign in.
-        await Header.GoToSignInAsync();
-        await LoginPage.LoginAsync("customer@practicesoftwaretesting.com", "welcome01");
+        var login = await Header.GoToSignInAsync();
+        await login.LoginAsync("customer@practicesoftwaretesting.com", "welcome01");
         await Assertions.Expect(Header.AccountMenu).ToContainTextAsync("Jane Doe");
 
         // Add a product to the cart.
         await Page.GotoAsync(TestConfig.BaseUrl);
-        await Catalog.Card("Combination Pliers").OpenAsync();
-        await ProductDetailPage.Create(Page).AddToCartAsync();
+        var detail = await Catalog.Card("Combination Pliers").OpenAsync();
+        await detail.AddToCartAsync();
 
         // Walk the checkout stepper to a placed order.
-        await Header.GoToCartAsync();
-        await Checkout.ProceedToCheckoutAsync();
-        await Checkout.ContinueAsSignedInAsync();
-        await Checkout.FillAddressAsync("US", "12345", "123 Test St", "New York", "NY");
-        await Checkout.ProceedToPaymentAsync();
-        await Checkout.PayByBankTransferAsync("Test Bank", "Jane Doe", "123456789");
-        await Checkout.ConfirmOrderAsync();
+        var cart = await Header.GoToCartAsync();
+        var checkout = await cart.ProceedToCheckoutAsync();
+        await checkout.ContinueAsSignedInAsync();
+        await checkout.FillAddressAsync("US", "12345", "123 Test St", "New York", "NY");
+        await checkout.ProceedToPaymentAsync();
+        await checkout.PayByBankTransferAsync("Test Bank", "Jane Doe", "123456789");
+        await checkout.ConfirmOrderAsync();
 
-        await Assertions.Expect(Checkout.SuccessMessage).ToBeVisibleAsync();
+        await Assertions.Expect(checkout.SuccessMessage).ToBeVisibleAsync();
     }
 }
