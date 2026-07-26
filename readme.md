@@ -2,7 +2,64 @@
 
 [![Tests](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml/badge.svg)](https://github.com/JamesHulsey/CSharp-Playwright-Library/actions/workflows/ci.yml)
 
-Standalone Playwright test framework: NUnit lifecycle base, session management, storage-state auth caching, video/screenshot on failure, and a minimal component model.
+Standalone Playwright test framework: NUnit lifecycle base, session management, storage-state auth caching, video/screenshot/trace on failure, and a minimal component model.
+
+## Architecture
+
+The library is the framework core; each sample is a standalone consumer that reaches
+it only through its public API. A consumer's tests drive page objects, which compose
+component objects, which wrap the library's components.
+
+```mermaid
+flowchart TB
+    subgraph samples["samples/ · consumers of the library"]
+        todo["TodoApp.UiTests<br/>page objects · row components"]
+        shop["Toolshop.Tests<br/>page + component objects · typed API client"]
+    end
+
+    subgraph lib["src/PlaywrightLibrary · the framework"]
+        base["PlaywrightTestBase<br/>session mgmt · retain-on-failure trace/video/screenshot"]
+        comps["Components<br/>Button · Text · Checkbox · Select"]
+        ext["Locator extensions"]
+        shared["SharedPlaywright<br/>one shared browser · API request contexts"]
+        auth["Auth caching (storage state)"]
+    end
+
+    todo --> base
+    shop --> base
+    todo --> comps
+    shop --> comps
+    todo --> ext
+    shop --> ext
+    base --> shared
+    base --> auth
+```
+
+Every test gets a fresh, isolated browser **context** but shares one **browser**, and
+media/traces are captured yet retained only on failure:
+
+```mermaid
+sequenceDiagram
+    participant T as Test
+    participant B as PlaywrightTestBase
+    participant SP as SharedPlaywright
+    participant C as Context (per test)
+
+    T->>B: CreateSessionAsync()
+    B->>SP: GetBrowserAsync()
+    Note right of SP: browser launched once,<br/>reused across all tests
+    SP-->>B: shared browser
+    B->>C: new context + page, start trace
+    C-->>T: session (page)
+    Note over T,C: test runs (web-first assertions)
+    T->>B: teardown
+    alt test failed
+        B->>C: save trace.zip + screenshot, keep video
+    else test passed
+        B->>C: discard trace + video
+    end
+    B->>C: dispose context (browser stays shared)
+```
 
 ## Layout
 
