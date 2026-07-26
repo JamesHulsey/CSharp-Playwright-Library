@@ -22,6 +22,7 @@ public abstract class ToolshopUiTestBase : ToolshopTestBase
     protected ProductCatalogPage Catalog => ProductCatalogPage.Create(Page);
     protected LoginPage LoginPage => LoginPage.Create(Page);
     protected CartPage Cart => CartPage.Create(Page);
+    protected CheckoutPage Checkout => CheckoutPage.Create(Page);
 
     [SetUp]
     public async Task OpenLandingPageAsync()

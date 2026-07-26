@@ -251,8 +251,10 @@ across apps and showcasing **API, UI, and hybrid** testing:
 - **API-only** tests via `ToolshopApiClient` — the API's page-object equivalent: typed
   models (`Product`, `Category`) over the library's API request context, no browser.
 - **UI** tests via page objects (`ProductCatalogPage`, `ProductDetailPage`, `LoginPage`,
-  `CartPage`) and component objects (`SiteHeader`, `ProductCard`); `ToolshopUiTestBase`
-  opens the landing page before each test.
-- A **login flow** plus **storage-state auth caching** — log in once, cache, and start
-  later sessions signed in.
+  `CartPage`, `CheckoutPage`) and component objects (`SiteHeader`, `ProductCard`);
+  `ToolshopUiTestBase` opens the landing page before each test.
+- A **login flow** (happy path and a negative case) plus **storage-state auth caching**
+  — log in once, cache, and start later sessions signed in.
+- An **end-to-end checkout** — sign in, add to cart, and walk the address/payment stepper
+  to a placed order.
 - A **hybrid** test that reads the source of truth from the API and asserts the UI matches.

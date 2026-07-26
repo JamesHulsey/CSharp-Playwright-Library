@@ -26,4 +26,14 @@ public class LoginFlowTests : ToolshopUiTestBase
 
         await Assertions.Expect(Header.AccountMenu).ToContainTextAsync("Jane Doe");
     }
+
+    [Test]
+    public async Task SigningIn_WithInvalidCredentials_ShowsAnError()
+    {
+        await Header.GoToSignInAsync();
+
+        await LoginPage.LoginAsync(CustomerEmail, "definitely-wrong");
+
+        await Assertions.Expect(LoginPage.Error).ToContainTextAsync("Invalid email or password");
+    }
 }
